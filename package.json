@@ -1,6 +1,6 @@
 {
   "name": "animakit-elastic",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AnimakitElastic - React component for flexible resizing of the blocks",
   "main": "index.js",
   "files": [

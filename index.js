@@ -1,5 +1,5 @@
-var AnimakitExpander = require('./lib/AnimakitExpander');
+var AnimakitElastic = require('./lib/AnimakitElastic');
 
-AnimakitExpander.displayName = 'AnimakitExpander';
+AnimakitElastic.displayName = 'AnimakitElastic';
 
-module.exports = AnimakitExpander;
+module.exports = AnimakitElastic;
