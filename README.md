@@ -21,10 +21,10 @@ npm install animakit-elastic
 
 ## Properties
 
-| Propery | Required | Type | Default Value  | Available Values  | Description |
+| Property | Required | Type | Default Value  | Available Values  | Description |
 | ----- | ----- | ----- | ----- | ----- | ----- |
-| duration | false | number | `1000` | Any integer number | Duration of rotation |
-| easing | false | string | `ease-out` | Any [easing function](http://easings.net/) | Easing function of rotation |
+| duration | false | number | `500` | Any integer number | Duration of animation |
+| easing | false | string | `ease-out` | Any [easing function](http://easings.net/) | Easing function of animation |
 
 ## Limitations
 
