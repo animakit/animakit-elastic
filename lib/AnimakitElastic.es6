@@ -24,14 +24,21 @@ export default class AnimakitElastic extends React.Component {
 
   contentNode      = null;
   parentNode       = null;
-  resizeCheckerRAF = null;
   animationResetTO = null;
+  resizeCheckerRAF = null;
+  winLoaded        = false;
+  contentMounted   = false;
+
+  listeners = {
+    checkResize: this.checkResize.bind(this),
+    winOnLoad:   this.winOnLoad.bind(this)
+  };
 
   componentDidMount() {
-    this.contentNode = findDOMNode(this.refs.content);
-    this.parentNode = document.body;
+    this.initNodes();
+    this.initLoad();
 
-    this.repaint(true);
+    this.repaint();
   }
 
   componentWillReceiveProps() {
@@ -57,11 +64,38 @@ export default class AnimakitElastic extends React.Component {
   componentWillUnmount() {
     this.cancelResizeChecker();
     this.cancelAnimationReset();
+    this.cancelLoad();
+  }
+
+  initNodes() {
+    this.contentNode = findDOMNode(this.refs.content);
+    this.parentNode = document.body;
+  }
+
+  initLoad() {
+    if (!window || document.readyState === 'complete') {
+      this.winLoaded = true;
+      return;
+    }
+
+    window.addEventListener('load', this.listeners.winOnLoad, false);
+  }
+
+  cancelLoad() {
+    if (!window || this.winLoaded) {
+      return;
+    }
+
+    window.removeEventListener('load', this.listeners.winOnLoad, false);
+  }
+
+  winOnLoad() {
+    this.winLoaded = true;
   }
 
   startResizeChecker() {
     if (typeof requestAnimationFrame === 'undefined') return;
-    this.resizeCheckerRAF = requestAnimationFrame(this.checkResize.bind(this));
+    this.resizeCheckerRAF = requestAnimationFrame(this.listeners.checkResize);
   }
 
   cancelResizeChecker() {
@@ -118,7 +152,7 @@ export default class AnimakitElastic extends React.Component {
     this.startResizeChecker();
   }
 
-  repaint(first = false) {
+  repaint() {
     const [contentWidth, contentHeight] = this.calcContentDimensions();
     const [parentWidth, parentHeight] = this.calcParentDimensions();
 
@@ -126,7 +160,13 @@ export default class AnimakitElastic extends React.Component {
 
     if (!Object.keys(state).length) return;
 
-    state.animation = !first;
+    state.animation = this.winLoaded && this.contentMounted;
+
+    if (this.state.parentWidth === null) {
+      setTimeout(() => {
+        this.contentMounted = true;
+      }, 1);
+    }
 
     if (state.animation) {
       this.cancelAnimationReset();
