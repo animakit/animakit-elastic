@@ -1,6 +1,6 @@
-import React                        from 'react';
-import { findDOMNode }              from 'react-dom';
-import { isEqual, getParentOffset } from 'animakit-core';
+import React           from 'react';
+import { findDOMNode } from 'react-dom';
+import { isEqual }     from 'animakit-core';
 
 export default class AnimakitElastic extends React.Component {
   static propTypes = {
@@ -108,7 +108,7 @@ export default class AnimakitElastic extends React.Component {
       this.setState({
         animation: false
       });
-    }, this.props.duration);
+    }, this.props.duration + 1);
   }
 
   cancelAnimationReset() {
@@ -123,10 +123,10 @@ export default class AnimakitElastic extends React.Component {
   }
 
   calcParentDimensions() {
-    const { left, top } = getParentOffset(this.contentNode, this.parentNode);
+    const rect = this.contentNode.getBoundingClientRect();
 
-    const parentWidth  = this.parentNode.offsetWidth - left;
-    const parentHeight = this.parentNode.offsetHeight - top;
+    const parentWidth  = this.parentNode.offsetWidth - rect.left;
+    const parentHeight = this.parentNode.offsetHeight - rect.top;
 
     return [parentWidth, parentHeight];
   }
