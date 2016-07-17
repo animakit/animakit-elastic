@@ -1,6 +1,6 @@
-import React           from 'react';
-import { findDOMNode } from 'react-dom';
-import { isEqual }     from 'animakit-core';
+import React                          from 'react';
+import { findDOMNode }                from 'react-dom';
+import { isEqual, getScrollbarWidth } from 'animakit-core';
 
 export default class AnimakitElastic extends React.Component {
   static propTypes = {
@@ -28,11 +28,17 @@ export default class AnimakitElastic extends React.Component {
   resizeCheckerRAF = null;
   winLoaded        = false;
   contentMounted   = false;
+  scrollbarWidth   = 0;
 
   listeners = {
     checkResize: this.checkResize.bind(this),
     winOnLoad:   this.winOnLoad.bind(this)
   };
+
+  componentWillMount() {
+    this.scrollbarWidth = getScrollbarWidth();
+    this.scrollbarWidth = 15;
+  }
 
   componentDidMount() {
     this.initNodes();
@@ -125,8 +131,8 @@ export default class AnimakitElastic extends React.Component {
   calcParentDimensions() {
     const rect = this.contentNode.getBoundingClientRect();
 
-    const parentWidth  = this.parentNode.offsetWidth - rect.left;
-    const parentHeight = this.parentNode.offsetHeight - rect.top;
+    const parentWidth  = this.parentNode.offsetWidth - rect.left - this.scrollbarWidth;
+    const parentHeight = this.parentNode.offsetHeight - rect.top - this.scrollbarWidth;
 
     return [parentWidth, parentHeight];
   }

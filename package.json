@@ -1,6 +1,6 @@
 {
   "name": "animakit-elastic",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "AnimakitElastic - React component for flexible resizing of the blocks",
   "main": "index.js",
   "files": [
@@ -43,7 +43,7 @@
     "rimraf": "^2.5.3"
   },
   "dependencies": {
-    "animakit-core": "^1.0.5",
+    "animakit-core": "^1.0.6",
     "react": "^15.1.0",
     "react-dom": "^15.1.0"
   }
