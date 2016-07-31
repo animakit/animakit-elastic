@@ -44,11 +44,11 @@ export default class AnimakitElastic extends React.Component {
     this.initNodes();
     this.initLoad();
 
-    this.repaint();
+    this.repaint(this.props);
   }
 
-  componentWillReceiveProps() {
-    this.repaint();
+  componentWillReceiveProps(nextProps) {
+    this.repaint(nextProps);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -121,20 +121,32 @@ export default class AnimakitElastic extends React.Component {
     if (this.animationResetTO) clearTimeout(this.animationResetTO);
   }
 
-  calcContentDimensions() {
+  calcContentDimensions(childrenCount) {
+    if (!childrenCount) return [0, 0];
+
     const contentWidth  = this.contentNode.offsetWidth;
     const contentHeight = this.contentNode.offsetHeight;
 
     return [contentWidth, contentHeight];
   }
 
-  calcParentDimensions() {
+  calcParentDimensions(childrenCount) {
+    if (!childrenCount) return [0, 0];
+
     const rect = this.contentNode.getBoundingClientRect();
 
     const parentWidth  = this.parentNode.offsetWidth - rect.left - this.scrollbarWidth;
     const parentHeight = this.parentNode.offsetHeight - rect.top - this.scrollbarWidth;
 
     return [parentWidth, parentHeight];
+  }
+
+  getChildrenCount(children) {
+    const length = Array.isArray(children) ? children.length : 1;
+
+    if (length > 1) return length;
+
+    return children ? 1 : 0;
   }
 
   resetDimensionsState(stateChunk) {
@@ -153,14 +165,16 @@ export default class AnimakitElastic extends React.Component {
   checkResize() {
     this.cancelResizeChecker();
 
-    this.repaint();
+    this.repaint(this.props);
 
     this.startResizeChecker();
   }
 
-  repaint() {
-    const [contentWidth, contentHeight] = this.calcContentDimensions();
-    const [parentWidth, parentHeight] = this.calcParentDimensions();
+  repaint(props) {
+    const childrenCount = this.getChildrenCount(props.children);
+
+    const [contentWidth, contentHeight] = this.calcContentDimensions(childrenCount);
+    const [parentWidth, parentHeight] = this.calcParentDimensions(childrenCount);
 
     const state = this.resetDimensionsState({ contentWidth, contentHeight, parentWidth, parentHeight });
 
@@ -185,7 +199,9 @@ export default class AnimakitElastic extends React.Component {
     }
   }
 
-  getWrapperStyles() {
+  getRootStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
     const { contentWidth, contentHeight } = this.state;
 
     const position = 'relative';
@@ -205,6 +221,8 @@ export default class AnimakitElastic extends React.Component {
   }
 
   getContainerStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
     const position = 'absolute';
 
     const { parentWidth, parentHeight } = this.state;
@@ -216,6 +234,8 @@ export default class AnimakitElastic extends React.Component {
   }
 
   getContentStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
     const position = 'absolute';
 
     return { position };
@@ -223,16 +243,13 @@ export default class AnimakitElastic extends React.Component {
 
   render() {
     return (
-      <div>
-        <div style = { this.getWrapperStyles() }>
-          <div style = { this.getContainerStyles() }>
-            <div
-              style = { this.getContentStyles() }
-              ref = "content"
-            >
-              <span style = {{ display: 'table', height: 0 }}></span>
-              { this.props.children }
-            </div>
+      <div style = { this.getRootStyles() }>
+        <div style = { this.getContainerStyles() }>
+          <div
+            style = { this.getContentStyles() }
+            ref = "content"
+          >
+          { this.props.children }
           </div>
         </div>
       </div>
