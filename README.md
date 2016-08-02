@@ -11,7 +11,7 @@ React component for flexible resizing of the blocks.
 </AnimakitElastic>
 ```
 
-## [Demo](http://askd.github.io/animakit/#/elastic)
+## [Demo](https://animakit.github.io/#/elastic)
 
 ## Installation
 
@@ -33,4 +33,4 @@ The components wrapper uses `overflow: hidden` to implement the animation.
 ## Origin
 
 Part of Animakit.
-See http://askd.github.io/animakit for more details.
+See https://animakit.github.io for more details.
