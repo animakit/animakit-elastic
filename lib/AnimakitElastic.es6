@@ -205,15 +205,15 @@ export default class AnimakitElastic extends React.Component {
     const { contentWidth, contentHeight } = this.state;
 
     const position = 'relative';
+    const overflow = 'hidden';
 
     const width = contentWidth !== null ? `${ contentWidth }px` : 'auto';
     const height = contentHeight !== null ? `${ contentHeight }px` : 'auto';
 
     if (!this.state.animation) {
-      return { position, width, height };
+      return { position, overflow, width, height };
     }
 
-    const overflow = 'hidden';
     const { duration, easing } = this.props;
     const transition = `width ${ duration }ms ${ easing }, height ${ duration }ms ${ easing }`;
 
