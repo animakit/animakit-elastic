@@ -1,17 +1,16 @@
 import React                          from 'react';
-import { findDOMNode }                from 'react-dom';
 import { isEqual, getScrollbarWidth } from 'animakit-core';
 
 export default class AnimakitElastic extends React.Component {
   static propTypes = {
     children: React.PropTypes.any,
     duration: React.PropTypes.number,
-    easing:   React.PropTypes.string
+    easing:   React.PropTypes.string,
   };
 
   static defaultProps = {
     duration: 500,
-    easing:   'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+    easing:   'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
   };
 
   state = {
@@ -19,29 +18,16 @@ export default class AnimakitElastic extends React.Component {
     contentHeight: null,
     parentWidth:   null,
     parentHeight:  null,
-    animation:     false
-  };
-
-  contentNode      = null;
-  parentNode       = null;
-  animationResetTO = null;
-  resizeCheckerRAF = null;
-  winLoaded        = false;
-  contentMounted   = false;
-  scrollbarWidth   = 0;
-
-  listeners = {
-    checkResize: this.checkResize.bind(this),
-    winOnLoad:   this.winOnLoad.bind(this)
+    animation:     false,
   };
 
   componentWillMount() {
-    this.scrollbarWidth = getScrollbarWidth();
-    this.scrollbarWidth = 15;
+    this.init();
   }
 
   componentDidMount() {
-    this.initNodes();
+    this.parentNode = document.body;
+
     this.initLoad();
 
     this.repaint(this.props);
@@ -73,9 +59,69 @@ export default class AnimakitElastic extends React.Component {
     this.cancelLoad();
   }
 
-  initNodes() {
-    this.contentNode = findDOMNode(this.refs.content);
-    this.parentNode = document.body;
+  getRootStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
+    const { contentWidth, contentHeight } = this.state;
+
+    const position = 'relative';
+    const overflow = 'hidden';
+
+    const width = contentWidth !== null ? `${contentWidth}px` : 'auto';
+    const height = contentHeight !== null ? `${contentHeight}px` : 'auto';
+
+    if (!this.state.animation) {
+      return { position, overflow, width, height };
+    }
+
+    const { duration, easing } = this.props;
+    const transition = `width ${duration}ms ${easing}, height ${duration}ms ${easing}`;
+
+    return { position, overflow, width, height, transition };
+  }
+
+  getContainerStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
+    const position = 'absolute';
+
+    const { parentWidth, parentHeight } = this.state;
+
+    const width = parentWidth !== null ? `${parentWidth}px` : 'auto';
+    const height = parentHeight !== null ? `${parentHeight}px` : 'auto';
+
+    return { position, width, height };
+  }
+
+  getContentStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
+    const position = 'absolute';
+
+    return { position };
+  }
+
+  getChildrenCount(children) {
+    const length = Array.isArray(children) ? children.length : 1;
+
+    if (length > 1) return length;
+
+    return children ? 1 : 0;
+  }
+
+  init() {
+    this.contentNode      = null;
+    this.parentNode       = null;
+    this.animationResetTO = null;
+    this.resizeCheckerRAF = null;
+    this.winLoaded        = false;
+    this.contentMounted   = false;
+    this.scrollbarWidth = getScrollbarWidth();
+
+    this.listeners = {
+      checkResize: this.checkResize.bind(this),
+      winOnLoad:   this.winOnLoad.bind(this),
+    };
   }
 
   initLoad() {
@@ -112,7 +158,7 @@ export default class AnimakitElastic extends React.Component {
   startAnimationReset() {
     this.animationResetTO = setTimeout(() => {
       this.setState({
-        animation: false
+        animation: false,
       });
     }, this.props.duration + 1);
   }
@@ -139,14 +185,6 @@ export default class AnimakitElastic extends React.Component {
     const parentHeight = this.parentNode.offsetHeight - rect.top - this.scrollbarWidth;
 
     return [parentWidth, parentHeight];
-  }
-
-  getChildrenCount(children) {
-    const length = Array.isArray(children) ? children.length : 1;
-
-    if (length > 1) return length;
-
-    return children ? 1 : 0;
   }
 
   resetDimensionsState(stateChunk) {
@@ -199,55 +237,13 @@ export default class AnimakitElastic extends React.Component {
     }
   }
 
-  getRootStyles() {
-    if (!this.state.animation && !this.props.children) return {};
-
-    const { contentWidth, contentHeight } = this.state;
-
-    const position = 'relative';
-    const overflow = 'hidden';
-
-    const width = contentWidth !== null ? `${ contentWidth }px` : 'auto';
-    const height = contentHeight !== null ? `${ contentHeight }px` : 'auto';
-
-    if (!this.state.animation) {
-      return { position, overflow, width, height };
-    }
-
-    const { duration, easing } = this.props;
-    const transition = `width ${ duration }ms ${ easing }, height ${ duration }ms ${ easing }`;
-
-    return { position, overflow, width, height, transition };
-  }
-
-  getContainerStyles() {
-    if (!this.state.animation && !this.props.children) return {};
-
-    const position = 'absolute';
-
-    const { parentWidth, parentHeight } = this.state;
-
-    const width = parentWidth !== null ? `${ parentWidth }px` : 'auto';
-    const height = parentHeight !== null ? `${ parentHeight }px` : 'auto';
-
-    return { position, width, height };
-  }
-
-  getContentStyles() {
-    if (!this.state.animation && !this.props.children) return {};
-
-    const position = 'absolute';
-
-    return { position };
-  }
-
   render() {
     return (
       <div style = { this.getRootStyles() }>
         <div style = { this.getContainerStyles() }>
           <div
             style = { this.getContentStyles() }
-            ref = "content"
+            ref = {(c) => { this.contentNode = c; }}
           >
           { this.props.children }
           </div>
