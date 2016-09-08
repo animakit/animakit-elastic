@@ -11,3 +11,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ##1.0.0-beta
 * Use AnimakitBase component from animakit-core
+
+##1.0.0-beta.1
+* Fix fractional size bug
