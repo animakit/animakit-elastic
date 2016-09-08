@@ -1,7 +1,7 @@
-import React                          from 'react';
-import { isEqual, getScrollbarWidth } from 'animakit-core';
+import React        from 'react';
+import AnimakitBase from 'animakit-core';
 
-export default class AnimakitElastic extends React.Component {
+export default class AnimakitElastic extends AnimakitBase {
   static propTypes = {
     children: React.PropTypes.any,
     duration: React.PropTypes.number,
@@ -21,42 +21,16 @@ export default class AnimakitElastic extends React.Component {
     animation:     false,
   };
 
-  componentWillMount() {
-    this.init();
+  init() {
+    this.parentNode     = document.body;
+    this.scrollbarWidth = this.getScrollbarWidth();
+
+    this.contentNode    = null;
+    this.contentMounted = false;
   }
 
-  componentDidMount() {
-    this.parentNode = document.body;
-
-    this.initLoad();
-
-    this.repaint(this.props);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.repaint(nextProps);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const stateChanged = !isEqual(nextState, this.state);
-
-    const propsChanged = !isEqual(nextProps.children, this.props.children);
-
-    return stateChanged || propsChanged;
-  }
-
-  componentWillUpdate() {
-    this.cancelResizeChecker();
-  }
-
-  componentDidUpdate() {
-    this.startResizeChecker();
-  }
-
-  componentWillUnmount() {
-    this.cancelResizeChecker();
-    this.cancelAnimationReset();
-    this.cancelLoad();
+  getDuration() {
+    return this.props.duration + 1;
   }
 
   getRootStyles() {
@@ -109,64 +83,6 @@ export default class AnimakitElastic extends React.Component {
     return children ? 1 : 0;
   }
 
-  init() {
-    this.contentNode      = null;
-    this.parentNode       = null;
-    this.animationResetTO = null;
-    this.resizeCheckerRAF = null;
-    this.winLoaded        = false;
-    this.contentMounted   = false;
-    this.scrollbarWidth = getScrollbarWidth();
-
-    this.listeners = {
-      checkResize: this.checkResize.bind(this),
-      winOnLoad:   this.winOnLoad.bind(this),
-    };
-  }
-
-  initLoad() {
-    if (!window || document.readyState === 'complete') {
-      this.winLoaded = true;
-      return;
-    }
-
-    window.addEventListener('load', this.listeners.winOnLoad, false);
-  }
-
-  cancelLoad() {
-    if (!window || this.winLoaded) {
-      return;
-    }
-
-    window.removeEventListener('load', this.listeners.winOnLoad, false);
-  }
-
-  winOnLoad() {
-    this.winLoaded = true;
-  }
-
-  startResizeChecker() {
-    if (typeof requestAnimationFrame === 'undefined') return;
-    this.resizeCheckerRAF = requestAnimationFrame(this.listeners.checkResize);
-  }
-
-  cancelResizeChecker() {
-    if (typeof requestAnimationFrame === 'undefined') return;
-    if (this.resizeCheckerRAF) cancelAnimationFrame(this.resizeCheckerRAF);
-  }
-
-  startAnimationReset() {
-    this.animationResetTO = setTimeout(() => {
-      this.setState({
-        animation: false,
-      });
-    }, this.props.duration + 1);
-  }
-
-  cancelAnimationReset() {
-    if (this.animationResetTO) clearTimeout(this.animationResetTO);
-  }
-
   calcContentDimensions(childrenCount) {
     if (!childrenCount) return [0, 0];
 
@@ -200,14 +116,6 @@ export default class AnimakitElastic extends React.Component {
     return stateChunk;
   }
 
-  checkResize() {
-    this.cancelResizeChecker();
-
-    this.repaint(this.props);
-
-    this.startResizeChecker();
-  }
-
   repaint(props) {
     const childrenCount = this.getChildrenCount(props.children);
 
@@ -218,7 +126,7 @@ export default class AnimakitElastic extends React.Component {
 
     if (!Object.keys(state).length) return;
 
-    state.animation = this.winLoaded && this.contentMounted;
+    state.animation = this.contentMounted;
 
     if (this.state.parentWidth === null) {
       setTimeout(() => {
@@ -226,15 +134,7 @@ export default class AnimakitElastic extends React.Component {
       }, 1);
     }
 
-    if (state.animation) {
-      this.cancelAnimationReset();
-    }
-
-    this.setState(state);
-
-    if (state.animation) {
-      this.startAnimationReset();
-    }
+    this.applyState(state);
   }
 
   render() {
