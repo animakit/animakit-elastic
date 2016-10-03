@@ -9,8 +9,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Refactor refs
 * Upgrade animakit-core
 
-##1.0.0-beta
+##1.0.0
 * Use AnimakitBase component from animakit-core
-
-##1.0.0-beta.1
 * Fix fractional size bug
