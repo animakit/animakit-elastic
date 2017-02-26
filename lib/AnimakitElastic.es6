@@ -2,24 +2,17 @@ import React        from 'react';
 import AnimakitBase from 'animakit-core';
 
 export default class AnimakitElastic extends AnimakitBase {
-  static propTypes = {
-    children: React.PropTypes.any,
-    duration: React.PropTypes.number,
-    easing:   React.PropTypes.string,
-  };
+  constructor(props) {
+    super(props);
 
-  static defaultProps = {
-    duration: 500,
-    easing:   'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-  };
-
-  state = {
-    contentWidth:  null,
-    contentHeight: null,
-    parentWidth:   null,
-    parentHeight:  null,
-    animation:     false,
-  };
+    this.state = {
+      contentWidth:  null,
+      contentHeight: null,
+      parentWidth:   null,
+      parentHeight:  null,
+      animation:     false,
+    };
+  }
 
   init() {
     this.parentNode     = document.body;
@@ -148,3 +141,14 @@ export default class AnimakitElastic extends AnimakitBase {
     );
   }
 }
+
+AnimakitElastic.propTypes = {
+  children: React.PropTypes.any,
+  duration: React.PropTypes.number,
+  easing:   React.PropTypes.string,
+};
+
+AnimakitElastic.defaultProps = {
+  duration: 500,
+  easing:   'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+};
