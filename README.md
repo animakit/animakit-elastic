@@ -5,9 +5,7 @@ React component for flexible resizing of the blocks.
 
 ```javascript
 <AnimakitElastic>
-  <Content>
-    { this.props.text }
-  </Content>
+  <Content />
 </AnimakitElastic>
 ```
 
