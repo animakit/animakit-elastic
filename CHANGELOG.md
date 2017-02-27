@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.0
+* Drop core dependency
+* Refactoring
+
 ## 1.0.0
 * Use AnimakitBase component from animakit-core
 * Fix fractional size bug
