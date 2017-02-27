@@ -1,29 +1,118 @@
-import React        from 'react';
-import AnimakitBase from 'animakit-core';
+import React, { Component, PropTypes } from 'react';
 
-export default class AnimakitElastic extends AnimakitBase {
+import { isEqual, transitionEventName, getScrollbarWidth } from './utils';
+
+export default class AnimakitElastic extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      contentWidth:  null,
+      animation: false,
+
+      contentWidth: null,
       contentHeight: null,
-      parentWidth:   null,
-      parentHeight:  null,
-      animation:     false,
+
+      parentWidth: null,
+      parentHeight: null,
     };
   }
 
-  init() {
-    this.parentNode     = document.body;
-    this.scrollbarWidth = this.getScrollbarWidth();
-
-    this.contentNode    = null;
+  componentWillMount() {
+    this.parentNode = document.body;
+    this.rootNode = null;
+    this.contentNode = null;
     this.contentMounted = false;
+
+    this.transitionEventName = transitionEventName();
+    this.scrollbarWidth = getScrollbarWidth();
+
+    this.listeners = this.getListeners();
+
+    this.animationReset = false;
+    this.animationResetTO = null;
+    this.resizeCheckerRAF = null;
   }
 
-  getDuration() {
-    return this.props.duration + 1;
+  componentDidMount() {
+    this.repaint(this.props);
+
+    this.toggleAnimationListener(true);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.repaint(nextProps);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    const stateChanged = !isEqual(nextState, this.state);
+
+    const childrenChanged = !isEqual(nextProps.children, this.props.children);
+
+    return stateChanged || childrenChanged;
+  }
+
+  componentWillUpdate() {
+    this.toggleResizeChecker(false);
+  }
+
+  componentDidUpdate() {
+    this.toggleResizeChecker(true);
+  }
+
+  componentWillUnmount() {
+    this.toggleResizeChecker(false);
+    this.toggleAnimationReset(false);
+    this.toggleAnimationListener(false);
+  }
+
+  getListeners() {
+    return {
+      onCheckResize: this.onCheckResize.bind(this),
+      onTransitionEnd: this.onTransitionEnd.bind(this),
+    };
+  }
+
+  toggleResizeChecker(start) {
+    if (typeof requestAnimationFrame === 'undefined') return;
+
+    if (start) {
+      this.resizeCheckerRAF = requestAnimationFrame(this.listeners.onCheckResize);
+    } else if (this.resizeCheckerRAF) {
+      cancelAnimationFrame(this.resizeCheckerRAF);
+    }
+  }
+
+  toggleAnimationReset(add) {
+    if (this.animationResetTO) clearTimeout(this.animationResetTO);
+
+    if (add) {
+      this.animationResetTO = setTimeout(() => {
+        this.animationReset = true;
+      }, this.props.duration);
+    } else {
+      this.animationReset = false;
+    }
+  }
+
+  toggleAnimationListener(add) {
+    const method = add ? 'addEventListener' : 'removeEventListener';
+    this.rootNode[method](this.transitionEventName, this.listeners.onTransitionEnd, false);
+  }
+
+  onTransitionEnd() {
+    if (!this.animationReset) return;
+
+    this.setState({
+      animation: false,
+    });
+  }
+
+  onCheckResize() {
+    this.toggleResizeChecker(false);
+
+    this.repaint(this.props);
+
+    this.toggleResizeChecker(true);
   }
 
   getRootStyles() {
@@ -81,13 +170,10 @@ export default class AnimakitElastic extends AnimakitBase {
 
     const rect = this.contentNode.getBoundingClientRect();
 
-    // const contentWidth  = this.contentNode.offsetWidth;
-    // const contentHeight = this.contentNode.offsetHeight;
-
-    const contentWidth  = Math.ceil(rect.width);
+    const contentWidth = Math.ceil(rect.width);
     const contentHeight = Math.ceil(rect.height);
 
-    const parentWidth  = this.parentNode.offsetWidth - rect.left - this.scrollbarWidth;
+    const parentWidth = this.parentNode.offsetWidth - rect.left - this.scrollbarWidth;
     const parentHeight = this.parentNode.offsetHeight - rect.top - this.scrollbarWidth;
 
     return [contentWidth, contentHeight, parentWidth, parentHeight];
@@ -109,9 +195,13 @@ export default class AnimakitElastic extends AnimakitBase {
   repaint(props) {
     const childrenCount = this.getChildrenCount(props.children);
 
-    const [contentWidth, contentHeight, parentWidth, parentHeight] = this.calcDimensions(childrenCount);
+    const [
+      contentWidth, contentHeight, parentWidth, parentHeight,
+    ] = this.calcDimensions(childrenCount);
 
-    const state = this.resetDimensionsState({ contentWidth, contentHeight, parentWidth, parentHeight });
+    const state = this.resetDimensionsState({
+      contentWidth, contentHeight, parentWidth, parentHeight,
+    });
 
     if (!Object.keys(state).length) return;
 
@@ -126,13 +216,30 @@ export default class AnimakitElastic extends AnimakitBase {
     this.applyState(state);
   }
 
+  applyState(state) {
+    if (!Object.keys(state).length) return;
+
+    if (state.animation) {
+      this.toggleAnimationReset(false);
+    }
+
+    this.setState(state);
+
+    if (state.animation) {
+      this.toggleAnimationReset(true);
+    }
+  }
+
   render() {
     return (
-      <div style = { this.getRootStyles() }>
-        <div style = { this.getContainerStyles() }>
+      <div
+        ref={(c) => { this.rootNode = c; }}
+        style={ this.getRootStyles() }
+      >
+        <div style={ this.getContainerStyles() }>
           <div
-            style = { this.getContentStyles() }
-            ref = {(c) => { this.contentNode = c; }}
+            style={ this.getContentStyles() }
+            ref={(c) => { this.contentNode = c; }}
           >
           { this.props.children }
           </div>
@@ -143,12 +250,12 @@ export default class AnimakitElastic extends AnimakitBase {
 }
 
 AnimakitElastic.propTypes = {
-  children: React.PropTypes.any,
-  duration: React.PropTypes.number,
-  easing:   React.PropTypes.string,
+  children: PropTypes.any,
+  duration: PropTypes.number,
+  easing: PropTypes.string,
 };
 
 AnimakitElastic.defaultProps = {
   duration: 500,
-  easing:   'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+  easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 };
