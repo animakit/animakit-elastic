@@ -1,13 +1,13 @@
 /* eslint-env jest */
 
-import { shallow }     from 'enzyme';
+import { render }     from 'enzyme';
 
 import React           from 'react';
 import AnimakitElastic from '../lib/AnimakitElastic.js';
 
 describe('<AnimakitElastic />', () => {
   it('should render', () => {
-    const component = shallow(<AnimakitElastic />);
+    const component = render(<AnimakitElastic />);
 
     expect(component).toMatchSnapshot();
   });
