@@ -16,6 +16,9 @@ export default class AnimakitElastic extends Component {
       parentWidth: null,
       parentHeight: null,
     };
+
+    this.setRootNode = this.setRootNode.bind(this);
+    this.setContentNode = this.setContentNode.bind(this);
   }
 
   componentWillMount() {
@@ -231,16 +234,24 @@ export default class AnimakitElastic extends Component {
     }
   }
 
+  setRootNode(c) {
+    this.rootNode = c;
+  }
+
+  setContentNode(c) {
+    this.contentNode = c;
+  }
+
   render() {
     return (
       <div
-        ref={(c) => { this.rootNode = c; }}
+        ref={this.setRootNode}
         style={ this.getRootStyles() }
       >
         <div style={ this.getContainerStyles() }>
           <div
             style={ this.getContentStyles() }
-            ref={(c) => { this.contentNode = c; }}
+            ref={this.setContentNode}
           >
           { this.props.children }
           </div>
