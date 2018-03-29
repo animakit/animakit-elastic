@@ -170,7 +170,7 @@ export default class AnimakitElastic extends Component {
   }
 
   calcDimensions(childrenCount) {
-    if (!childrenCount) return [0, 0, 0, 0];
+    if (!childrenCount || !this.contentNode) return [0, 0, 0, 0];
 
     const rect = this.contentNode.getBoundingClientRect();
 
