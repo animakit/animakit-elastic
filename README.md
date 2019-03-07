@@ -1,4 +1,8 @@
 # AnimakitElastic
+
+**WARNING:** Currently unmaintained because of lack of interest, activity and resources
+
+
 React component for flexible resizing of the blocks.
 
 ## Usage
